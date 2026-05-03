@@ -78,4 +78,24 @@ router.get('/', listAccounts);
  *         description: Compte introuvable
  */
 router.delete("/:id", idParamRule, validate, accountController.deleteAccount);
+/**
+ * @swagger
+ * /api/accounts/{id}/balance:
+ *   get:
+ *     summary: Vérifier le solde d'un compte
+ *     tags: [Comptes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Solde du compte
+ *       404:
+ *         description: Compte introuvable
+ */
+router.get("/:id/balance", idParamRule, validate, accountController.checkBalance);
+
 module.exports = router;

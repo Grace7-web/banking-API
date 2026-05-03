@@ -28,8 +28,7 @@ const createAccount = async (req, res, next) => {
  */
 const getAllAccounts = async (req, res, next) => {
   try {
-    const { bankId, status } = req.query;
-    const accounts = await accountService.getAllAccounts({ bankId, status });
+    const accounts = await accountService.getAllAccounts();
     return res.status(200).json({
       success: true,
       count: accounts.length,
@@ -57,4 +56,16 @@ const deleteAccount = async (req, res, next) => {
   }
 };
 
-module.exports = { createAccount, getAllAccounts, deleteAccount };
+const checkBalance = async (req, res, next) => {
+  try {
+    const result = await accountService.checkBalance(req.params.id);
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { createAccount, getAllAccounts, deleteAccount, checkBalance };

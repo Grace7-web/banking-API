@@ -65,29 +65,13 @@ const createAccount = async (data) => {
  * @param {Object} filters - { bankId?, status? }
  * @returns {Promise<Account[]>}
  */
-const getAllAccounts = async (filters = {}) => {
-  const query = {};
-  if (filters.bankId) {
-    query.bankId = filters.bankId;
-  }
+const getAllAccounts = async () => {
 
-  if (filters.status) {
-    const allowedStatuses = ["active", "suspended", "closed"];
-    if (!allowedStatuses.includes(filters.status)) {
-      const err = new Error(
-        "Statut invalide. Valeurs acceptées : active, suspended, closed"
-      );
-      err.statusCode = 400;
-      throw err;
-    }
-    query.status = filters.status;
-  }
-  const accounts = await Account.find(query)
+  const accounts = await Account.find()
     .populate("bankId", "name code")
     .sort({ createdAt: -1 });
-
-  
   return accounts;
+  
 };
 
 /**
@@ -142,4 +126,35 @@ const deleteAccount = async (accountId) => {
   };
 };
 
-module.exports = { createAccount, getAllAccounts, deleteAccount };
+const checkBalance = async (accountId) => {
+  const account = await Account.findById(accountId);
+ 
+
+  if (!account) {
+    const err = new Error("Compte bancaire non trouvé");
+    err.statusCode = 404;
+    throw err;
+    
+  }
+
+  if (account.status !== "active") {
+  
+
+    const err = new Error(
+      `Consultation impossible : le compte est "${account.status}"`
+    );
+    err.statusCode = 403;
+    throw err;
+    
+  }
+
+  return {
+    accountNumber: account.accountNumber,
+    ownerName: account.ownerName,
+    balance: account.balance,
+    currency: account.currency,
+  };
+  
+};
+
+module.exports = { createAccount, getAllAccounts, deleteAccount, checkBalance };
