@@ -2,11 +2,17 @@
 
 const express = require('express');
 const router = express.Router();
-const {
-  createAccount,
-  listAccounts,
-  getAccountById
-} = require('../controllers/accountController');
+const { param } = require("express-validator");
+const accountController = require('../controllers/accountController');
+const validate = require("../middlewares/validate");
+
+// Règle de validation pour l'ID
+const idParamRule = [
+  param("id").isMongoId().withMessage("ID invalide")
+];
+
+
+
 
 /**
  * @swagger
