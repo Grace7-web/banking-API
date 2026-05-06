@@ -19,38 +19,23 @@ const Bank = require("../models/Bank");
  * @returns {Promise<Account>}
  */
 const createAccount = async (data) => {
-// NŒUD 1 — Déclaration et ouverture de la fonction (START)
-
   const { ownerName, bankId, currency } = data;
-  // NŒUD 2 — Action : on extrait les données reçues
-
   const existingAccount = await Account.findOne({ ownerName, bankId });
-  // NŒUD 3 — Action : on vérifie si ce titulaire a déjà un compte dans cette banque
-
+  
   if (existingAccount) {
-  // NŒUD 4 — CONDITION : Le compte existe-t-il déjà ?
-  //   → OUI (existe) : on va au NŒUD 5 (erreur)
-  //   → NON (nouveau) : on saute au NŒUD 6
-
     const err = new Error("Ce titulaire possède déjà un compte dans cette banque");
     err.statusCode = 409;
     throw err;
-    // NŒUD 5 — Action : erreur 409 → FIN (END 1)
+    
   }
-
   const account = await Account.create({
     ownerName,
     bankId,
     currency: currency || "XOF",
   });
-  // NŒUD 6 — Action : on crée le compte en BD
-  // (NŒUD DE JONCTION : on arrive ici depuis NŒUD 4-NON)
-
   await account.populate("bankId", "name code");
-  // NŒUD 7 — Action : on enrichit avec les infos de la banque sélectionnée
-
   return account;
-  // NŒUD 8 — Action : on retourne le compte créé → FIN (END 2)
+  
 };
 
 /**

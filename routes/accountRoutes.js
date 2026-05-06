@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const { param } = require("express-validator");
-const accountController = require('../controllers/accountController');
+const { createAccount, getAllAccounts, deleteAccount, checkBalance } = require('../controllers/accountController');
 const validate = require("../middlewares/validate");
 
 // Règle de validation pour l'ID
@@ -63,7 +63,7 @@ router.post('/', createAccount);
  *       200:
  *         description: Liste des comptes
  */
-router.get('/', listAccounts);
+router.get('/', getAllAccounts);
 
 /**
  * @swagger
@@ -83,7 +83,7 @@ router.get('/', listAccounts);
  *       404:
  *         description: Compte introuvable
  */
-router.delete("/:id", idParamRule, validate, accountController.deleteAccount);
+router.delete("/:id", idParamRule, validate, deleteAccount);
 /**
  * @swagger
  * /api/accounts/{id}/balance:
@@ -102,6 +102,6 @@ router.delete("/:id", idParamRule, validate, accountController.deleteAccount);
  *       404:
  *         description: Compte introuvable
  */
-router.get("/:id/balance", idParamRule, validate, accountController.checkBalance);
+router.get("/:id/balance", idParamRule, validate, checkBalance);
 
 module.exports = router;

@@ -2,7 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { createBank, listBanks } = require('../controllers/bankController');
+const { createBank, getAllBanks } = require('../controllers/bankController');
 
 /**
  * @swagger
@@ -42,6 +42,6 @@ router.post('/', createBank);
  *       200:
  *         description: Liste des banques
  */
-router.get('/', listBanks);
+router.get('/', getAllBanks);
 
 module.exports = router;
