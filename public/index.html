@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NZalle Banking — Tableau de bord</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Tokens ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-0: #0a0c10;
+      --bg-1: #111318;
+      --bg-2: #181c24;
+      --bg-3: #1f2430;
+      --border: #262d3d;
+      --border-light: #2e3a50;
+      --gold: #c9a84c;
+      --gold-dim: #8a6d2a;
+      --gold-glow: rgba(201,168,76,0.15);
+      --teal: #2dd4bf;
+      --teal-dim: rgba(45,212,191,0.1);
+      --red: #f87171;
+      --red-dim: rgba(248,113,113,0.1);
+      --green: #4ade80;
+      --green-dim: rgba(74,222,128,0.1);
+      --text-1: #f0f2f5;
+      --text-2: #8b95a8;
+      --text-3: #4a5568;
+      --font: 'Inter', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-0);
+      color: var(--text-1);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── Sidebar ────────────────────────────────────────────────── */
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: var(--bg-1);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-1);
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: var(--text-2);
+      font-weight: 400;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+    }
+
+    .nav-section {
+      margin-bottom: 24px;
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding: 0 12px;
+      margin-bottom: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-2);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-2);
+      color: var(--text-1);
+    }
+
+    .nav-item.active {
+      background: var(--gold-glow);
+      border-color: rgba(201,168,76,0.2);
+      color: var(--gold);
+    }
+
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .api-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--text-3);
+      transition: background 0.3s;
+    }
+
+    .status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.offline { background: var(--red); }
+
+    /* ── Main ───────────────────────────────────────────────────── */
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 32px;
+      max-width: calc(100vw - 260px);
+    }
+
+    /* ── Topbar ─────────────────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-top: 2px;
+    }
+
+    .api-url-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .api-url-badge input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--teal);
+      font-family: var(--mono);
+      font-size: 12px;
+      width: 300px;
+    }
+
+    /* ── Sections ───────────────────────────────────────────────── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Cards ──────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-1);
+    }
+
+    .card-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .badge-gold { background: var(--gold-glow); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+    .badge-teal { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(45,212,191,0.2); }
+    .badge-red  { background: var(--red-dim);  color: var(--red);  border: 1px solid rgba(248,113,113,0.2); }
+    .badge-green{ background: var(--green-dim);color: var(--green);border: 1px solid rgba(74,222,128,0.2); }
+
+    /* ── Grid ───────────────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+
+    /* ── Forms ──────────────────────────────────────────────────── */
+    .form-group { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-2);
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+
+    select option { background: var(--bg-2); }
+
+    /* ── Buttons ────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #a8832a);
+      color: #0a0c10;
+    }
+
+    .btn-gold:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      color: var(--text-2);
+    }
+
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+    .btn-danger {
+      background: var(--red-dim);
+      border: 1px solid rgba(248,113,113,0.3);
+      color: var(--red);
+    }
+
+    .btn-success {
+      background: var(--green-dim);
+      border: 1px solid rgba(74,222,128,0.3);
+      color: var(--green);
+    }
+
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ── Stats Cards ────────────────────────────────────────────── */
+    .stat-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .stat-card.gold::before { background: linear-gradient(90deg, var(--gold), transparent); }
+    .stat-card.teal::before { background: linear-gradient(90deg, var(--teal), transparent); }
+    .stat-card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+
+    .stat-label { font-size: 12px; color: var(--text-2); font-weight: 500; margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 700; font-family: var(--mono); }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.teal { color: var(--teal); }
+    .stat-value.green { color: var(--green); }
+
+    /* ── Table ──────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      color: var(--text-3);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-2);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td { background: var(--bg-2); color: var(--text-1); }
+
+    .mono { font-family: var(--mono); font-size: 12px; }
+
+    /* ── Alert / Toast ──────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      top: 24px; right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      min-width: 280px;
+      animation: slideIn 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .toast.success { background: #0f2a1a; border: 1px solid rgba(74,222,128,0.3); color: var(--green); }
+    .toast.error   { background: #2a0f0f; border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
+    .toast.info    { background: #0f1e2a; border: 1px solid rgba(45,212,191,0.3);  color: var(--teal); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+
+    /* ── Result box ─────────────────────────────────────────────── */
+    .result-box {
+      background: var(--bg-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--teal);
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .result-box.visible { display: block; }
+
+    /* ── Empty state ────────────────────────────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-3);
+    }
+
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-text { font-size: 14px; }
+
+    /* ── Divider ────────────────────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    /* ── Loader ─────────────────────────────────────────────────── */
+    .loader {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Account card ───────────────────────────────────────────── */
+    .account-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      transition: border-color 0.2s;
+    }
+
+    .account-card:hover { border-color: var(--border-light); }
+
+    .account-number {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+
+    .account-owner {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 4px;
+    }
+
+    .account-bank {
+      font-size: 12px;
+      color: var(--text-2);
+      margin-bottom: 12px;
+    }
+
+    .account-balance {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .account-currency {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-left: 4px;
+    }
+
+    .account-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .status-active  { background: var(--green-dim); color: var(--green); }
+    .status-suspended { background: rgba(251,191,36,0.1); color: #fbbf24; }
+    .status-closed  { background: var(--red-dim); color: var(--red); }
+
+    /* ── Transaction type ───────────────────────────────────────── */
+    .tx-deposit   { color: var(--green); }
+    .tx-withdrawal { color: var(--red); }
+
+    /* ── Scrollbar ──────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-0); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Dashboard overview ─────────────────────────────────────── */
+    .welcome-banner {
+      background: linear-gradient(135deg, var(--bg-2), var(--bg-3));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-banner::after {
+      content: '🏦';
+      position: absolute;
+      right: 32px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 64px;
+      opacity: 0.1;
+    }
+
+    .welcome-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .welcome-title span { color: var(--gold); }
+
+    .welcome-sub { font-size: 14px; color: var(--text-2); }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .sidebar { width: 60px; }
+      .logo-text, .logo-sub, .nav-item span, .nav-label, .api-status span { display: none; }
+      .main { margin-left: 60px; padding: 20px; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .api-url-badge input { width: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ──────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">🏦</div>
+      <div>
+        <div class="logo-text">NZalle</div>
+        <div class="logo-sub">Banking System</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Principal</div>
+      <div class="nav-item active" onclick="navigate('dashboard')">
+        <span class="nav-icon">📊</span>
+        <span>Tableau de bord</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Gestion</div>
+      <div class="nav-item" onclick="navigate('banks')">
+        <span class="nav-icon">🏛️</span>
+        <span>Banques</span>
+      </div>
+      <div class="nav-item" onclick="navigate('accounts')">
+        <span class="nav-icon">💳</span>
+        <span>Comptes</span>
+      </div>
+      <div class="nav-item" onclick="navigate('transactions')">
+        <span class="nav-icon">↕️</span>
+        <span>Transactions</span>
+      </div>
+      <div class="nav-item" onclick="navigate('balance')">
+        <span class="nav-icon">💰</span>
+        <span>Solde</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="api-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Vérification...</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Toast ─────────────────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ── Main ──────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="pageTitle">Tableau de bord</div>
+      <div class="page-subtitle" id="pageSubtitle">Vue d'ensemble du système bancaire</div>
+    </div>
+    <div class="api-url-badge">
+      <span>🔗</span>
+      <input type="text" id="apiBaseUrl" value="https://nzalle.onrender.com/api/v1" placeholder="URL de l'API" />
+    </div>
+  </div>
+
+  <!-- ══ DASHBOARD ════════════════════════════════════════════════ -->
+  <div class="section active" id="section-dashboard">
+    <div class="welcome-banner">
+      <div class="welcome-title">Bienvenue sur <span>NZalle Banking</span></div>
+      <div class="welcome-sub">Système de gestion bancaire multi-banque · API REST</div>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:24px">
+      <div class="stat-card gold">
+        <div class="stat-label">Banques enregistrées</div>
+        <div class="stat-value gold" id="statBanks">—</div>
+      </div>
+      <div class="stat-card teal">
+        <div class="stat-label">Comptes actifs</div>
+        <div class="stat-value teal" id="statAccounts">—</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Statut API</div>
+        <div class="stat-value green" id="statApi" style="font-size:16px;margin-top:6px">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Derniers comptes créés</span>
+        <button class="btn btn-outline btn-sm" onclick="navigate('accounts')">Voir tous →</button>
+      </div>
+      <div id="dashAccountList">
+        <div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Chargement...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BANQUES ══════════════════════════════════════════════════ -->
+  <div class="section" id="section-banks">
+    <div class="grid-2" style="margin-bottom:24px">
+
+      <!-- Créer banque -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Créer une banque</span>
+          <span class="card-badge badge-gold">POST</span>
+        </div>
+        <div class="form-group">
+          <label>Nom de la banque *</label>
+          <input type="text" id="bankName" placeholder="ex: Banque Atlantique" />
+        </div>
+        <div class="form-group">
+          <label>Code banque *</label>
+          <input type="text" id="bankCode" placeholder="ex: BA001" />
+        </div>
+        <div class="form-group">
+          <label>Adresse</label>
+          <input type="text" id="bankAddress" placeholder="ex: Abidjan, Côte d'Ivoire" />
+        </div>
+        <button class="btn btn-gold" onclick="createBank()">
+          <span>🏛️</span> Créer la banque
+        </button>
+        <div class="result-box" id="bankCreateResult"></div>
+      </div>
+
+      <!-- Liste banques -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Banques existantes</span>
+          <button class="btn btn-outline btn-sm" onclick="loadBanks()">↻ Actualiser</button>
+        </div>
+        <div id="bankList">
+          <div class="empty"><div class="empty-icon">🏛️</div><div class="empty-text">Cliquez sur Actualiser</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ COMPTES ══════════════════════════════════════════════════ -->
+  <div class="section" id="section-accounts">
+
+    <div class="grid-2" style="margin-bottom:24px">
+      <!-- Créer compte -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Créer un compte</span>
+          <span class="card-badge badge-gold">POST</span>
+        </div>
+        <div class="form-group">
+          <label>Nom du titulaire *</label>
+          <input type="text" id="accOwner" placeholder="ex: Kouamé Aya" />
+        </div>
+        <div class="form-group">
+          <label>Banque *</label>
+          <select id="accBankId">
+            <option value="">— Sélectionner une banque —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Devise</label>
+          <select id="accCurrency">
+            <option value="XOF">XOF — Franc CFA</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="USD">USD — Dollar</option>
+            <option value="GBP">GBP — Livre</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" onclick="createAccount()">
+          <span>💳</span> Créer le compte
+        </button>
+        <div class="result-box" id="accCreateResult"></div>
+      </div>
+
+      <!-- Supprimer compte -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Supprimer un compte</span>
+          <span class="card-badge badge-red">DELETE</span>
+        </div>
+        <div class="form-group">
+          <label>ID du compte *</label>
+          <select id="deleteAccId">
+            <option value="">— Sélectionner un compte —</option>
+          </select>
+        </div>
+        <p style="font-size:12px;color:var(--text-3);margin-bottom:16px">⚠️ Le solde doit être à 0 avant suppression</p>
+        <button class="btn btn-danger" onclick="deleteAccount()">
+          <span>🗑️</span> Supprimer le compte
+        </button>
+        <div class="result-box" id="accDeleteResult"></div>
+      </div>
+    </div>
+
+    <!-- Liste comptes -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Tous les comptes</span>
+        <button class="btn btn-outline btn-sm" onclick="loadAccounts()">↻ Actualiser</button>
+      </div>
+      <div id="accountList">
+        <div class="empty"><div class="empty-icon">💳</div><div class="empty-text">Cliquez sur Actualiser</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TRANSACTIONS ════════════════════════════════════════════ -->
+  <div class="section" id="section-transactions">
+    <div class="grid-2" style="margin-bottom:24px">
+
+      <!-- Dépôt -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Effectuer un dépôt</span>
+          <span class="card-badge badge-green">DÉPÔT</span>
+        </div>
+        <div class="form-group">
+          <label>Compte *</label>
+          <select id="depositAccId">
+            <option value="">— Sélectionner un compte —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Montant *</label>
+          <input type="number" id="depositAmount" placeholder="ex: 50000" min="1" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="depositDesc" placeholder="ex: Dépôt salaire" />
+        </div>
+        <button class="btn btn-success" onclick="makeDeposit()">
+          <span>⬇️</span> Déposer
+        </button>
+        <div class="result-box" id="depositResult"></div>
+      </div>
+
+      <!-- Retrait -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Effectuer un retrait</span>
+          <span class="card-badge badge-red">RETRAIT</span>
+        </div>
+        <div class="form-group">
+          <label>Compte *</label>
+          <select id="withdrawAccId">
+            <option value="">— Sélectionner un compte —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Montant *</label>
+          <input type="number" id="withdrawAmount" placeholder="ex: 15000" min="1" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="withdrawDesc" placeholder="ex: Retrait guichet" />
+        </div>
+        <button class="btn btn-danger" onclick="makeWithdrawal()">
+          <span>⬆️</span> Retirer
+        </button>
+        <div class="result-box" id="withdrawResult"></div>
+      </div>
+    </div>
+
+    <!-- Historique transactions -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Historique des transactions</span>
+        <span class="card-badge badge-teal">GET</span>
+      </div>
+      <div class="form-group" style="max-width:400px">
+        <label>Sélectionner un compte</label>
+        <select id="historyAccId" onchange="loadHistory()">
+          <option value="">— Choisir un compte —</option>
+        </select>
+      </div>
+      <div id="transactionHistory">
+        <div class="empty"><div class="empty-icon">↕️</div><div class="empty-text">Sélectionnez un compte pour voir l'historique</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SOLDE ════════════════════════════════════════════════════ -->
+  <div class="section" id="section-balance">
+    <div style="max-width:500px;margin:0 auto">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Vérifier le solde</span>
+          <span class="card-badge badge-teal">GET</span>
+        </div>
+        <div class="form-group">
+          <label>Sélectionner un compte *</label>
+          <select id="balanceAccId">
+            <option value="">— Sélectionner un compte —</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" onclick="checkBalance()" style="width:100%">
+          <span>💰</span> Vérifier le solde
+        </button>
+
+        <div id="balanceResult" style="display:none;margin-top:20px">
+          <hr class="divider" />
+          <div style="text-align:center;padding:20px 0">
+            <div style="font-size:12px;color:var(--text-2);margin-bottom:8px" id="balanceOwner">—</div>
+            <div style="font-family:var(--mono);font-size:48px;font-weight:700;color:var(--gold)" id="balanceAmount">—</div>
+            <div style="font-size:14px;color:var(--text-3);margin-top:4px" id="balanceCurrency">—</div>
+            <div style="font-size:12px;color:var(--text-2);margin-top:8px" id="balanceNumber">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────
+const getBase = () => document.getElementById('apiBaseUrl').value.replace(/\/$/, '');
+
+// ── Navigation ────────────────────────────────────────────────────
+const pages = {
+  dashboard:    { title: 'Tableau de bord',  sub: 'Vue d\'ensemble du système bancaire' },
+  banks:        { title: 'Banques',           sub: 'Créer et consulter les banques' },
+  accounts:     { title: 'Comptes bancaires', sub: 'Gérer les comptes' },
+  transactions: { title: 'Transactions',      sub: 'Dépôts et retraits' },
+  balance:      { title: 'Vérification solde',sub: 'Consulter le solde d\'un compte' },
+};
+
+function navigate(page) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(page)) n.classList.add('active');
+  });
+  document.getElementById('pageTitle').textContent = pages[page].title;
+  document.getElementById('pageSubtitle').textContent = pages[page].sub;
+
+  if (page === 'accounts') { loadBankOptions(); loadAccounts(); loadAccountOptions(); }
+  if (page === 'transactions') { loadAccountOptions(); }
+  if (page === 'balance') { loadAccountOptions(); }
+  if (page === 'dashboard') { loadDashboard(); }
+}
+
+// ── API Helper ────────────────────────────────────────────────────
+async function api(method, path, body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(getBase() + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Erreur API');
+  return data;
+}
+
+// ── Toast ─────────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function showResult(id, data, success = true) {
+  const el = document.getElementById(id);
+  el.className = 'result-box visible';
+  el.style.color = success ? 'var(--teal)' : 'var(--red)';
+  el.textContent = JSON.stringify(data, null, 2);
+}
+
+// ── Health check ──────────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    const res = await fetch(getBase().replace('/api/v1', '') + '/health');
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    if (res.ok) {
+      dot.className = 'status-dot online';
+      txt.textContent = 'API en ligne';
+      document.getElementById('statApi').textContent = '✅ En ligne';
+    } else throw new Error();
+  } catch {
+    document.getElementById('statusDot').className = 'status-dot offline';
+    document.getElementById('statusText').textContent = 'Hors ligne';
+    document.getElementById('statApi').textContent = '❌ Hors ligne';
+  }
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────
+async function loadDashboard() {
+  checkHealth();
+  try {
+    const banks = await api('GET', '/banks');
+    document.getElementById('statBanks').textContent = banks.count ?? banks.data?.length ?? '—';
+  } catch { document.getElementById('statBanks').textContent = '—'; }
+
+  try {
+    const accs = await api('GET', '/accounts');
+    document.getElementById('statAccounts').textContent = accs.count ?? accs.data?.length ?? '—';
+
+    const list = document.getElementById('dashAccountList');
+    if (!accs.data?.length) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">Aucun compte créé</div></div>';
+      return;
+    }
+    const rows = accs.data.slice(0,5).map(a => `
+      <tr>
+        <td class="mono">${a.accountNumber}</td>
+        <td>${a.ownerName}</td>
+        <td>${a.bankId?.name || '—'}</td>
+        <td class="mono" style="color:var(--gold)">${a.balance.toLocaleString()} ${a.currency}</td>
+        <td><span class="status-pill status-${a.status}">${a.status}</span></td>
+      </tr>
+    `).join('');
+    list.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>N° Compte</th><th>Titulaire</th><th>Banque</th><th>Solde</th><th>Statut</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  } catch { }
+}
+
+// ── Banks ─────────────────────────────────────────────────────────
+async function createBank() {
+  const name = document.getElementById('bankName').value.trim();
+  const code = document.getElementById('bankCode').value.trim();
+  const address = document.getElementById('bankAddress').value.trim();
+  if (!name || !code) return toast('Nom et code obligatoires', 'error');
+  try {
+    const res = await api('POST', '/banks', { name, code, address });
+    toast('Banque créée avec succès !', 'success');
+    showResult('bankCreateResult', res);
+    document.getElementById('bankName').value = '';
+    document.getElementById('bankCode').value = '';
+    document.getElementById('bankAddress').value = '';
+    loadBanks();
+  } catch(e) {
+    toast(e.message, 'error');
+    showResult('bankCreateResult', { error: e.message }, false);
+  }
+}
+
+async function loadBanks() {
+  const el = document.getElementById('bankList');
+  el.innerHTML = '<div class="empty"><div class="loader"></div></div>';
+  try {
+    const res = await api('GET', '/banks');
+    if (!res.data?.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">🏛️</div><div class="empty-text">Aucune banque enregistrée</div></div>';
+      return;
+    }
+    const rows = res.data.map(b => `
+      <tr>
+        <td><strong style="color:var(--text-1)">${b.name}</strong></td>
+        <td><span class="mono" style="color:var(--gold)">${b.code}</span></td>
+        <td style="color:var(--text-3)">${b.address || '—'}</td>
+      </tr>
+    `).join('');
+    el.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>Nom</th><th>Code</th><th>Adresse</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  } catch(e) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">❌</div><div class="empty-text">${e.message}</div></div>`;
+    toast(e.message, 'error');
+  }
+}
+
+// ── Accounts ──────────────────────────────────────────────────────
+async function loadBankOptions() {
+  try {
+    const res = await api('GET', '/banks');
+    const sel = document.getElementById('accBankId');
+    sel.innerHTML = '<option value="">— Sélectionner une banque —</option>' +
+      (res.data || []).map(b => `<option value="${b._id}">${b.name} (${b.code})</option>`).join('');
+  } catch {}
+}
+
+async function loadAccountOptions() {
+  try {
+    const res = await api('GET', '/accounts');
+    const ids = ['depositAccId','withdrawAccId','historyAccId','balanceAccId','deleteAccId'];
+    ids.forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      sel.innerHTML = '<option value="">— Sélectionner un compte —</option>' +
+        (res.data || []).map(a => `<option value="${a._id}">${a.ownerName} · ${a.accountNumber}</option>`).join('');
+    });
+  } catch {}
+}
+
+async function createAccount() {
+  const ownerName = document.getElementById('accOwner').value.trim();
+  const bankId = document.getElementById('accBankId').value;
+  const currency = document.getElementById('accCurrency').value;
+  if (!ownerName || !bankId) return toast('Titulaire et banque obligatoires', 'error');
+  try {
+    const res = await api('POST', '/accounts', { ownerName, bankId, currency });
+    toast('Compte créé avec succès !', 'success');
+    showResult('accCreateResult', res);
+    document.getElementById('accOwner').value = '';
+    loadAccounts();
+    loadAccountOptions();
+  } catch(e) {
+    toast(e.message, 'error');
+    showResult('accCreateResult', { error: e.message }, false);
+  }
+}
+
+async function loadAccounts() {
+  const el = document.getElementById('accountList');
+  el.innerHTML = '<div class="empty"><div class="loader"></div></div>';
+  try {
+    const res = await api('GET', '/accounts');
+    if (!res.data?.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">Aucun compte créé</div></div>';
+      return;
+    }
+    const cards = res.data.map(a => `
+      <div class="account-card">
+        <div class="account-number">${a.accountNumber}</div>
+        <div class="account-owner">${a.ownerName}</div>
+        <div class="account-bank">🏛️ ${a.bankId?.name || '—'} · ${a.bankId?.code || ''}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <span class="account-balance">${a.balance.toLocaleString()}</span>
+            <span class="account-currency">${a.currency}</span>
+          </div>
+          <span class="status-pill status-${a.status}">${a.status}</span>
+        </div>
+      </div>
+    `).join('');
+    el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">${cards}</div>`;
+  } catch(e) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">❌</div><div class="empty-text">${e.message}</div></div>`;
+  }
+}
+
+async function deleteAccount() {
+  const id = document.getElementById('deleteAccId').value;
+  if (!id) return toast('Sélectionnez un compte', 'error');
+  if (!confirm('Confirmer la suppression ? Le solde doit être à 0.')) return;
+  try {
+    const res = await api('DELETE', `/accounts/${id}`);
+    toast('Compte supprimé avec succès', 'success');
+    showResult('accDeleteResult', res);
+    loadAccounts();
+    loadAccountOptions();
+  } catch(e) {
+    toast(e.message, 'error');
+    showResult('accDeleteResult', { error: e.message }, false);
+  }
+}
+
+// ── Transactions ──────────────────────────────────────────────────
+async function makeDeposit() {
+  const accountId = document.getElementById('depositAccId').value;
+  const amount = parseFloat(document.getElementById('depositAmount').value);
+  const description = document.getElementById('depositDesc').value;
+  if (!accountId || !amount) return toast('Compte et montant obligatoires', 'error');
+  try {
+    const res = await api('POST', `/accounts/${accountId}/deposit`, { amount, description });
+    toast(`Dépôt de ${amount.toLocaleString()} effectué !`, 'success');
+    showResult('depositResult', res);
+    document.getElementById('depositAmount').value = '';
+    loadAccountOptions();
+  } catch(e) {
+    toast(e.message, 'error');
+    showResult('depositResult', { error: e.message }, false);
+  }
+}
+
+async function makeWithdrawal() {
+  const accountId = document.getElementById('withdrawAccId').value;
+  const amount = parseFloat(document.getElementById('withdrawAmount').value);
+  const description = document.getElementById('withdrawDesc').value;
+  if (!accountId || !amount) return toast('Compte et montant obligatoires', 'error');
+  try {
+    const res = await api('POST', `/accounts/${accountId}/withdrawal`, { amount, description });
+    toast(`Retrait de ${amount.toLocaleString()} effectué !`, 'success');
+    showResult('withdrawResult', res);
+    document.getElementById('withdrawAmount').value = '';
+    loadAccountOptions();
+  } catch(e) {
+    toast(e.message, 'error');
+    showResult('withdrawResult', { error: e.message }, false);
+  }
+}
+
+async function loadHistory() {
+  const id = document.getElementById('historyAccId').value;
+  const el = document.getElementById('transactionHistory');
+  if (!id) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">↕️</div><div class="empty-text">Sélectionnez un compte</div></div>';
+    return;
+  }
+  el.innerHTML = '<div class="empty"><div class="loader"></div></div>';
+  try {
+    const res = await api('GET', `/accounts/${id}/transactions`);
+    if (!res.data?.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Aucune transaction</div></div>';
+      return;
+    }
+    const rows = res.data.map(t => `
+      <tr>
+        <td class="mono" style="font-size:11px;color:var(--text-3)">${new Date(t.createdAt).toLocaleString('fr')}</td>
+        <td><span class="tx-${t.type}">${t.type === 'deposit' ? '⬇ Dépôt' : '⬆ Retrait'}</span></td>
+        <td class="mono tx-${t.type}">${t.type === 'deposit' ? '+' : '-'}${t.amount.toLocaleString()}</td>
+        <td class="mono" style="color:var(--gold)">${t.balanceAfter.toLocaleString()}</td>
+        <td style="color:var(--text-3)">${t.description || '—'}</td>
+      </tr>
+    `).join('');
+    el.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Type</th><th>Montant</th><th>Solde après</th><th>Description</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  } catch(e) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">❌</div><div class="empty-text">${e.message}</div></div>`;
+  }
+}
+
+// ── Balance ───────────────────────────────────────────────────────
+async function checkBalance() {
+  const id = document.getElementById('balanceAccId').value;
+  if (!id) return toast('Sélectionnez un compte', 'error');
+  try {
+    const res = await api('GET', `/accounts/${id}/balance`);
+    const d = res.data;
+    document.getElementById('balanceOwner').textContent = d.ownerName;
+    document.getElementById('balanceAmount').textContent = d.balance.toLocaleString();
+    document.getElementById('balanceCurrency').textContent = d.currency;
+    document.getElementById('balanceNumber').textContent = d.accountNumber;
+    document.getElementById('balanceResult').style.display = 'block';
+    toast('Solde récupéré avec succès', 'success');
+  } catch(e) {
+    toast(e.message, 'error');
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  loadDashboard();
+  setInterval(checkHealth, 30000);
+});
+</script>
+</body>
+</html>

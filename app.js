@@ -5,6 +5,7 @@ const swaggerSpec = require("./config/swagger");
 const bankRoutes = require("./routes/bankRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const errorHandler = require("./middlewares/errorHandler");
+const path = require("path");
 
 const app = express();
 
@@ -12,6 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, "public")));
 
 // ─── API Documentation ────────────────────────────────────────
 app.use(
