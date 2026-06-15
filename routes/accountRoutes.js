@@ -4,15 +4,13 @@ const express = require('express');
 const router = express.Router();
 const { param } = require("express-validator");
 const { createAccount, getAllAccounts, deleteAccount, checkBalance } = require('../controllers/accountController');
+const { deposit, withdrawal, getTransactionHistory } = require('../controllers/transactionController');
 const validate = require("../middlewares/validate");
 
-// Règle de validation pour l'ID
+// Règle de validation pour l'ID (Utilisation de isUUID car PostgreSQL génère des UUID)
 const idParamRule = [
-  param("id").isMongoId().withMessage("ID invalide")
+  param("id").isUUID(4).withMessage("ID invalide (doit être un UUID v4)")
 ];
-
-
-
 
 /**
  * @swagger
@@ -51,7 +49,7 @@ router.post('/', createAccount);
  * @swagger
  * /api/accounts:
  *   get:
- *     summary: Lister tous les comptes (ou filtrer par banque)
+ *     summary: Lister tous les comptes
  *     tags: [Comptes]
  *     parameters:
  *       - in: query
@@ -68,8 +66,8 @@ router.get('/', getAllAccounts);
 /**
  * @swagger
  * /api/accounts/{id}:
- *   get:
- *     summary: Obtenir un compte par ID
+ *   delete:
+ *     summary: Supprimer un compte par ID
  *     tags: [Comptes]
  *     parameters:
  *       - in: path
@@ -79,11 +77,12 @@ router.get('/', getAllAccounts);
  *           type: string
  *     responses:
  *       200:
- *         description: Détails du compte
+ *         description: Compte supprimé
  *       404:
  *         description: Compte introuvable
  */
 router.delete("/:id", idParamRule, validate, deleteAccount);
+
 /**
  * @swagger
  * /api/accounts/{id}/balance:
@@ -103,5 +102,32 @@ router.delete("/:id", idParamRule, validate, deleteAccount);
  *         description: Compte introuvable
  */
 router.get("/:id/balance", idParamRule, validate, checkBalance);
+
+/**
+ * @swagger
+ * /api/accounts/{id}/deposit:
+ *   post:
+ *     summary: Faire un dépôt
+ *     tags: [Comptes]
+ */
+router.post("/:id/deposit", idParamRule, validate, deposit);
+
+/**
+ * @swagger
+ * /api/accounts/{id}/withdrawal:
+ *   post:
+ *     summary: Faire un retrait
+ *     tags: [Comptes]
+ */
+router.post("/:id/withdrawal", idParamRule, validate, withdrawal);
+
+/**
+ * @swagger
+ * /api/accounts/{id}/transactions:
+ *   get:
+ *     summary: Obtenir l'historique des transactions
+ *     tags: [Comptes]
+ */
+router.get("/:id/transactions", idParamRule, validate, getTransactionHistory);
 
 module.exports = router;

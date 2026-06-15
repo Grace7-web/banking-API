@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Bank {
+  id        String    @id @default(uuid())
+  name      String    @unique @db.VarChar(100)
+  code      String    @unique @db.VarChar(10)
+  address   String?   @default("")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  accounts  Account[]
+}
+
+model Account {
+  id            String        @id @default(uuid())
+  accountNumber String        @unique
+  ownerName     String        @db.VarChar(100)
+  balance       Float         @default(0)
+  currency      String        @default("XOF")
+  status        String        @default("active") // active, suspended, closed
+  bankId        String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  bank          Bank          @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+}
+
+model Transaction {
+  id            String   @id @default(uuid())
+  accountId     String
+  type          String   // deposit, withdrawal
+  amount        Float
+  balanceBefore Float
+  balanceAfter  Float
+  description   String?  @default("") @db.VarChar(255)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  account       Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}

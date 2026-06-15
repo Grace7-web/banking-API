@@ -34,9 +34,12 @@ app.get("/api-docs.json", (req, res) => {
   res.send(swaggerSpec);
 });
 
+const transactionRoutes = require("./routes/transactionRoutes");
+
 // ─── API Routes ───────────────────────────────────────────────
 app.use("/api/v1/banks", bankRoutes);
 app.use("/api/v1/accounts", accountRoutes);
+app.use("/api/v1/transactions", transactionRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────
 app.get("/health", (req, res) => {

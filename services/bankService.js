@@ -1,4 +1,4 @@
-const Bank = require("../models/Bank");
+const prisma = require("../config/db");
 
 /**
  * @service BankService
@@ -14,8 +14,10 @@ const Bank = require("../models/Bank");
 const createBank = async (bankData) => {
   const { name, code, address } = bankData;
 
-  const existing = await Bank.findOne({
-    $or: [{ name }, { code: code.toUpperCase() }],
+  const existing = await prisma.bank.findFirst({
+    where: {
+      OR: [{ name }, { code: code.toUpperCase() }],
+    },
   });
 
   if (existing) {
@@ -26,7 +28,13 @@ const createBank = async (bankData) => {
     throw err;
   }
 
-  const bank = await Bank.create({ name, code, address });
+  const bank = await prisma.bank.create({
+    data: {
+      name,
+      code: code.toUpperCase(),
+      address,
+    },
+  });
   return bank;
 };
 
@@ -35,8 +43,21 @@ const createBank = async (bankData) => {
  * @returns {Promise<Bank[]>}
  */
 const getAllBanks = async () => {
-  const banks = await Bank.find().sort({ name: 1 });
-  return banks;
+  const banks = await prisma.bank.findMany({
+    orderBy: { name: 'asc' },
+    include: {
+      _count: {
+        select: { accounts: true }
+      }
+    }
+  });
+  
+  // Format the output to match previous virtual property 'accounts'
+  return banks.map(bank => ({
+    ...bank,
+    accounts: bank._count.accounts,
+    _count: undefined
+  }));
 };
 
 /**
@@ -46,7 +67,14 @@ const getAllBanks = async () => {
  * @throws {Error} 404 if not found.
  */
 const getBankById = async (bankId) => {
-  const bank = await Bank.findById(bankId);
+  const bank = await prisma.bank.findUnique({
+    where: { id: bankId },
+    include: {
+      _count: {
+        select: { accounts: true }
+      }
+    }
+  });
 
   if (!bank) {
     const err = new Error("Banque non trouvée");
@@ -54,7 +82,11 @@ const getBankById = async (bankId) => {
     throw err;
   }
 
-  return bank;
+  return {
+    ...bank,
+    accounts: bank._count.accounts,
+    _count: undefined
+  };
 };
 
 module.exports = { createBank, getAllBanks, getBankById };

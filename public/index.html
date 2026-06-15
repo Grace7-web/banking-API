@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NZalle Banking — Tableau de bord</title>
+  <title> Transaction bancaire — Tableau de bord</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     /* ── Reset & Tokens ─────────────────────────────────────────── */
@@ -589,8 +589,8 @@
     <div class="logo-mark">
       <div class="logo-icon">🏦</div>
       <div>
-        <div class="logo-text">NZalle</div>
-        <div class="logo-sub">Banking System</div>
+        <div class="logo-text">Transaction</div>
+        <div class="logo-sub">Bancaire</div>
       </div>
     </div>
   </div>
@@ -647,14 +647,14 @@
     </div>
     <div class="api-url-badge">
       <span>🔗</span>
-      <input type="text" id="apiBaseUrl" value="https://nzalle.onrender.com/api/v1" placeholder="URL de l'API" />
+      <input type="text" id="apiBaseUrl" value="http://localhost:3000/api/v1" placeholder="URL de l'API" />
     </div>
   </div>
 
   <!-- ══ DASHBOARD ════════════════════════════════════════════════ -->
   <div class="section active" id="section-dashboard">
     <div class="welcome-banner">
-      <div class="welcome-title">Bienvenue sur <span>NZalle Banking</span></div>
+      <div class="welcome-title"><span>Transaction bancaire</span></div>
       <div class="welcome-sub">Système de gestion bancaire multi-banque · API REST</div>
     </div>
 
@@ -686,31 +686,7 @@
 
   <!-- ══ BANQUES ══════════════════════════════════════════════════ -->
   <div class="section" id="section-banks">
-    <div class="grid-2" style="margin-bottom:24px">
-
-      <!-- Créer banque -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Créer une banque</span>
-          <span class="card-badge badge-gold">POST</span>
-        </div>
-        <div class="form-group">
-          <label>Nom de la banque *</label>
-          <input type="text" id="bankName" placeholder="ex: Banque Atlantique" />
-        </div>
-        <div class="form-group">
-          <label>Code banque *</label>
-          <input type="text" id="bankCode" placeholder="ex: BA001" />
-        </div>
-        <div class="form-group">
-          <label>Adresse</label>
-          <input type="text" id="bankAddress" placeholder="ex: Abidjan, Côte d'Ivoire" />
-        </div>
-        <button class="btn btn-gold" onclick="createBank()">
-          <span>🏛️</span> Créer la banque
-        </button>
-        <div class="result-box" id="bankCreateResult"></div>
-      </div>
+    <div style="margin-bottom:24px">
 
       <!-- Liste banques -->
       <div class="card">
@@ -733,7 +709,6 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Créer un compte</span>
-          <span class="card-badge badge-gold">POST</span>
         </div>
         <div class="form-group">
           <label>Nom du titulaire *</label>
@@ -757,14 +732,12 @@
         <button class="btn btn-gold" onclick="createAccount()">
           <span>💳</span> Créer le compte
         </button>
-        <div class="result-box" id="accCreateResult"></div>
       </div>
 
       <!-- Supprimer compte -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Supprimer un compte</span>
-          <span class="card-badge badge-red">DELETE</span>
         </div>
         <div class="form-group">
           <label>ID du compte *</label>
@@ -776,7 +749,6 @@
         <button class="btn btn-danger" onclick="deleteAccount()">
           <span>🗑️</span> Supprimer le compte
         </button>
-        <div class="result-box" id="accDeleteResult"></div>
       </div>
     </div>
 
@@ -794,13 +766,12 @@
 
   <!-- ══ TRANSACTIONS ════════════════════════════════════════════ -->
   <div class="section" id="section-transactions">
-    <div class="grid-2" style="margin-bottom:24px">
+    <div class="grid-3" style="margin-bottom:24px">
 
       <!-- Dépôt -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Effectuer un dépôt</span>
-          <span class="card-badge badge-green">DÉPÔT</span>
         </div>
         <div class="form-group">
           <label>Compte *</label>
@@ -819,14 +790,12 @@
         <button class="btn btn-success" onclick="makeDeposit()">
           <span>⬇️</span> Déposer
         </button>
-        <div class="result-box" id="depositResult"></div>
       </div>
 
       <!-- Retrait -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Effectuer un retrait</span>
-          <span class="card-badge badge-red">RETRAIT</span>
         </div>
         <div class="form-group">
           <label>Compte *</label>
@@ -845,7 +814,38 @@
         <button class="btn btn-danger" onclick="makeWithdrawal()">
           <span>⬆️</span> Retirer
         </button>
-        <div class="result-box" id="withdrawResult"></div>
+      </div>
+
+      <!-- Transfert -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Effectuer un transfert</span>
+        </div>
+        <div class="form-group">
+          <label>Compte Source *</label>
+          <select id="transferFromAccId">
+            <option value="">— Compte source —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Compte Destinataire *</label>
+          <select id="transferToAccId">
+            <option value="">— Compte destinataire —</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Montant *</label>
+            <input type="number" id="transferAmount" placeholder="ex: 5000" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" id="transferDesc" placeholder="ex: Loyer" />
+          </div>
+        </div>
+        <button class="btn btn-gold" onclick="makeTransfer()" style="width:100%">
+          <span>🔄</span> Transférer
+        </button>
       </div>
     </div>
 
@@ -853,7 +853,6 @@
     <div class="card">
       <div class="card-header">
         <span class="card-title">Historique des transactions</span>
-        <span class="card-badge badge-teal">GET</span>
       </div>
       <div class="form-group" style="max-width:400px">
         <label>Sélectionner un compte</label>
@@ -873,7 +872,6 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Vérifier le solde</span>
-          <span class="card-badge badge-teal">GET</span>
         </div>
         <div class="form-group">
           <label>Sélectionner un compte *</label>
@@ -953,10 +951,7 @@ function toast(msg, type = 'info') {
 }
 
 function showResult(id, data, success = true) {
-  const el = document.getElementById(id);
-  el.className = 'result-box visible';
-  el.style.color = success ? 'var(--teal)' : 'var(--red)';
-  el.textContent = JSON.stringify(data, null, 2);
+  // Fonction désactivée pour ne plus afficher les retours JSON bruts à l'utilisateur
 }
 
 // ── Health check ──────────────────────────────────────────────────
@@ -1062,19 +1057,19 @@ async function loadBankOptions() {
     const res = await api('GET', '/banks');
     const sel = document.getElementById('accBankId');
     sel.innerHTML = '<option value="">— Sélectionner une banque —</option>' +
-      (res.data || []).map(b => `<option value="${b._id}">${b.name} (${b.code})</option>`).join('');
+      (res.data || []).map(b => `<option value="${b.id}">${b.name} (${b.code})</option>`).join('');
   } catch {}
 }
 
 async function loadAccountOptions() {
   try {
     const res = await api('GET', '/accounts');
-    const ids = ['depositAccId','withdrawAccId','historyAccId','balanceAccId','deleteAccId'];
+    const ids = ['depositAccId','withdrawAccId','historyAccId','balanceAccId','deleteAccId','transferFromAccId','transferToAccId'];
     ids.forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
       sel.innerHTML = '<option value="">— Sélectionner un compte —</option>' +
-        (res.data || []).map(a => `<option value="${a._id}">${a.ownerName} · ${a.accountNumber}</option>`).join('');
+        (res.data || []).map(a => `<option value="${a.id}">${a.ownerName} · ${a.accountNumber}</option>`).join('');
     });
   } catch {}
 }
@@ -1174,6 +1169,31 @@ async function makeWithdrawal() {
   } catch(e) {
     toast(e.message, 'error');
     showResult('withdrawResult', { error: e.message }, false);
+  }
+}
+
+async function makeTransfer() {
+  const fromAccountId = document.getElementById('transferFromAccId').value;
+  const toAccountId = document.getElementById('transferToAccId').value;
+  const amount = parseFloat(document.getElementById('transferAmount').value);
+  const description = document.getElementById('transferDesc').value;
+  
+  if (!fromAccountId || !toAccountId || !amount) {
+    return toast('Comptes et montant obligatoires', 'error');
+  }
+  if (fromAccountId === toAccountId) {
+    return toast('Les comptes source et destinataire doivent être différents', 'error');
+  }
+
+  try {
+    const res = await api('POST', `/transactions/transfer`, { fromAccountId, toAccountId, amount, description });
+    toast(`Transfert de ${amount.toLocaleString()} effectué !`, 'success');
+    showResult('transferResult', res);
+    document.getElementById('transferAmount').value = '';
+    loadAccountOptions();
+  } catch(e) {
+    toast(e.message, 'error');
+    showResult('transferResult', { error: e.message }, false);
   }
 }
 
