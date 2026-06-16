@@ -1,3 +1,8 @@
+
+
+
+
+
 const express = require("express");
 const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
@@ -50,7 +55,10 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-
+// ─── Serve Frontend (Racine) ──────────────────────────────────
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 // ─── 404 Handler ──────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({
