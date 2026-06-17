@@ -86,4 +86,34 @@ describe("withdrawal", () => {
       statusCode: 422,
     });
   });
+
+  it("CAS 6 : doit utiliser la description par défaut si aucune description n'est fournie", async () => {
+    const fakeAccount = {
+      id: "acc987",
+      balance: 8000,
+      currency: "XOF",
+      status: "active",
+    };
+
+    const fakeUpdatedAccount = { ...fakeAccount, balance: 5500 };
+
+    const fakeTransaction = {
+      id: "tx004",
+      type: "withdrawal",
+      amount: 2500,
+      balanceBefore: 8000,
+      balanceAfter: 5500,
+    };
+
+    vi.spyOn(prisma.account, "findUnique").mockResolvedValue(fakeAccount);
+    vi.spyOn(prisma.account, "update").mockResolvedValue(fakeUpdatedAccount);
+    vi.spyOn(prisma.transaction, "create").mockResolvedValue(fakeTransaction);
+    vi.spyOn(prisma, "$transaction").mockImplementation(async (cb) => cb(prisma));
+
+    await withdrawal("acc987", 2500);
+
+    expect(prisma.transaction.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ description: "Retrait" }) })
+    );
+  });
 });

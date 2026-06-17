@@ -52,4 +52,33 @@ describe("createAccount", () => {
       statusCode: 409,
     });
   });
+
+  it("CAS 3 : doit créer un compte avec la devise par défaut si la devise n'est pas fournie", async () => {
+    const data = {
+      ownerName: "Marie Martin",
+      bankId: "bank456",
+    };
+
+    const fakeAccount = {
+      id: "acc456",
+      ownerName: "Marie Martin",
+      bankId: "bank456",
+      balance: 0,
+      currency: "XOF",
+      status: "active",
+      accountNumber: "ACC-002",
+    };
+
+    vi.spyOn(prisma.account, "findFirst").mockResolvedValue(null);
+    vi.spyOn(prisma.account, "create").mockResolvedValue(fakeAccount);
+
+    const result = await createAccount(data);
+
+    expect(prisma.account.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ currency: "XOF" })
+      })
+    );
+    expect(result.ownerName).toBe("Marie Martin");
+  });
 });

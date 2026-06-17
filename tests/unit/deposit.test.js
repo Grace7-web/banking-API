@@ -74,4 +74,34 @@ describe("deposit", () => {
       statusCode: 400,
     });
   });
+
+  it("CAS 5 : doit utiliser la description par défaut si aucune description n'est fournie", async () => {
+    const fakeAccount = {
+      id: "acc789",
+      balance: 2000,
+      currency: "XOF",
+      status: "active",
+    };
+
+    const fakeUpdatedAccount = { ...fakeAccount, balance: 4500 };
+
+    const fakeTransaction = {
+      id: "tx003",
+      type: "deposit",
+      amount: 2500,
+      balanceBefore: 2000,
+      balanceAfter: 4500,
+    };
+
+    vi.spyOn(prisma.account, "findUnique").mockResolvedValue(fakeAccount);
+    vi.spyOn(prisma.account, "update").mockResolvedValue(fakeUpdatedAccount);
+    vi.spyOn(prisma.transaction, "create").mockResolvedValue(fakeTransaction);
+    vi.spyOn(prisma, "$transaction").mockImplementation(async (cb) => cb(prisma));
+
+    await deposit("acc789", 2500);
+
+    expect(prisma.transaction.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ description: "Dépôt" }) })
+    );
+  });
 });
