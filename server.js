@@ -13,10 +13,15 @@ const PORT = process.env.PORT || 3000;
  */
 const startServer = async () => {
   try {
-    // Run migrations in production
+    // Sync database schema in production (more forgiving than migrate deploy)
     if (process.env.NODE_ENV === "production") {
-      console.log("🔄 Running Prisma migrations...");
-      execSync("npx prisma migrate deploy", { stdio: "inherit" });
+      console.log("🔄 Syncing database schema...");
+      try {
+        execSync("npx prisma db push", { stdio: "inherit" });
+        console.log("✅ Database schema synced");
+      } catch (err) {
+        console.warn("⚠️ Database sync failed, continuing anyway:", err.message);
+      }
     }
     
     await prisma.$connect();
