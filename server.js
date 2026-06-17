@@ -1,29 +1,16 @@
 
 const app = require("./app");
 const prisma = require("./config/db");
-const { execSync } = require("child_process");
 
 const PORT = process.env.PORT || 3000;
 
 /**
  * Starts the server:
- * 1. Run Prisma migrations
- * 2. Connect to PostgreSQL via Prisma
- * 3. Listen on configured port
+ * 1. Connect to PostgreSQL via Prisma
+ * 2. Listen on configured port
  */
 const startServer = async () => {
   try {
-    // Sync database schema in production (more forgiving than migrate deploy)
-    if (process.env.NODE_ENV === "production") {
-      console.log("🔄 Syncing database schema...");
-      try {
-        execSync("npx prisma db push", { stdio: "inherit" });
-        console.log("✅ Database schema synced");
-      } catch (err) {
-        console.warn("⚠️ Database sync failed, continuing anyway:", err.message);
-      }
-    }
-    
     await prisma.$connect();
     console.log("✅ PostgreSQL Connected via Prisma");
 
