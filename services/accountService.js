@@ -14,7 +14,7 @@ const generateAccountNumber = () => {
  * FUNCTION 1 — createAccount
  */
 const createAccount = async (data) => {
-  const { ownerName, bankId, currency } = data;
+  const { ownerName, email, bankId, currency, password } = data;
   
   const existingAccount = await prisma.account.findFirst({ 
     where: { ownerName, bankId } 
@@ -30,6 +30,8 @@ const createAccount = async (data) => {
     data: {
       accountNumber: generateAccountNumber(),
       ownerName,
+      email,
+      password,
       bankId,
       currency: currency || "XOF",
     },
@@ -39,6 +41,9 @@ const createAccount = async (data) => {
       }
     }
   });
+  
+  // On ne renvoie pas le mot de passe pour la sécurité
+  delete account.password;
   
   return account;
 };

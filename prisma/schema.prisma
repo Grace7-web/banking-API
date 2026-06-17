@@ -21,6 +21,8 @@ model Account {
   id            String        @id @default(uuid())
   accountNumber String        @unique
   ownerName     String        @db.VarChar(100)
+  email         String?       // Email du titulaire
+  password      String?       // Mot de passe (optionnel pour l'instant)
   balance       Float         @default(0)
   currency      String        @default("XOF")
   status        String        @default("active") // active, suspended, closed
