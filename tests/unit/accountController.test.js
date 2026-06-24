@@ -49,6 +49,7 @@ describe("AccountController", () => {
         { id: "acc2", ownerName: "Marie" }
       ];
       vi.spyOn(accountService, "getAllAccounts").mockResolvedValue(fakeAccounts);
+      req.query = {};
 
       await accountController.getAllAccounts(req, res, next);
 
@@ -64,6 +65,7 @@ describe("AccountController", () => {
     it("doit appeler next() en cas d'erreur", async () => {
       const testError = new Error("Erreur de test");
       vi.spyOn(accountService, "getAllAccounts").mockRejectedValue(testError);
+      req.query = {};
 
       await accountController.getAllAccounts(req, res, next);
 
@@ -81,10 +83,11 @@ describe("AccountController", () => {
       };
       vi.spyOn(accountService, "deleteAccount").mockResolvedValue(fakeResult);
       req.params = { id: "acc123" };
+      req.body = { userId: "user123", isAdmin: true };
 
       await accountController.deleteAccount(req, res, next);
 
-      expect(accountService.deleteAccount).toHaveBeenCalledWith("acc123");
+      expect(accountService.deleteAccount).toHaveBeenCalledWith("acc123", "user123", true);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -97,6 +100,7 @@ describe("AccountController", () => {
       const testError = new Error("Erreur de test");
       vi.spyOn(accountService, "deleteAccount").mockRejectedValue(testError);
       req.params = { id: "acc123" };
+      req.body = { userId: "user123", isAdmin: true };
 
       await accountController.deleteAccount(req, res, next);
 

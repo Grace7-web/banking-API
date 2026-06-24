@@ -35,10 +35,30 @@ describe("getAllAccounts", () => {
     const result = await getAllAccounts();
 
     expect(prisma.account.findMany).toHaveBeenCalledWith({
+      where: {},
       include: {
         bank: {
           select: { name: true, code: true },
         },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(result).toEqual(fakeAccounts);
+  });
+
+  it("doit filtrer les comptes par userId si fourni", async () => {
+    const fakeAccounts = [
+      { id: "acc1", ownerName: "Jean", userId: "user1" },
+    ];
+
+    vi.spyOn(prisma.account, "findMany").mockResolvedValue(fakeAccounts);
+
+    const result = await getAllAccounts("user1");
+
+    expect(prisma.account.findMany).toHaveBeenCalledWith({
+      where: { userId: "user1" },
+      include: {
+        bank: { select: { name: true, code: true } },
       },
       orderBy: { createdAt: "desc" },
     });
