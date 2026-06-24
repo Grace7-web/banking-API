@@ -35,7 +35,7 @@ router.get('/history/:accountId', getTransactionHistoryFromRoute);
  * @swagger
  * /api/transactions/transfer:
  *   post:
- *     summary: Transfert entre comptes (même banque ou inter-bancaire
+ *     summary: Transfert entre comptes (même banque ou inter-bancaire)
  *     tags: [Transactions]
  *     requestBody:
  *       required: true
@@ -47,7 +47,7 @@ router.get('/history/:accountId', getTransactionHistoryFromRoute);
  *             properties:
  *               fromAccountId:
  *                 type: string
- *                 example: "uuid-compte-source
+ *                 example: "uuid-compte-source"
  *               toAccountId:
  *                 type: string
  *                 example: "uuid-compte-destination"

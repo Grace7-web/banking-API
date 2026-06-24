@@ -9,6 +9,8 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 const bankRoutes = require("./routes/bankRoutes");
 const accountRoutes = require("./routes/accountRoutes");
+const transactionRoutes = require("./routes/transactionRoutes");
+const userRoutes = require("./routes/userRoutes");
 const errorHandler = require("./middlewares/errorHandler");
 const path = require("path");
 
@@ -39,12 +41,11 @@ app.get("/api-docs.json", (req, res) => {
   res.send(swaggerSpec);
 });
 
-const transactionRoutes = require("./routes/transactionRoutes");
-
 // ─── API Routes ───────────────────────────────────────────────
 app.use("/api/v1/banks", bankRoutes);
 app.use("/api/v1/accounts", accountRoutes);
 app.use("/api/v1/transactions", transactionRoutes);
+app.use("/api/v1/users", userRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────
 app.get("/health", (req, res) => {

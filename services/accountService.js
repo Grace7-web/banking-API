@@ -14,7 +14,7 @@ const generateAccountNumber = () => {
  * FUNCTION 1 — createAccount
  */
 const createAccount = async (data) => {
-  const { ownerName, email, bankId, currency, password } = data;
+  const { ownerName, email, bankId, currency, password, userId } = data;
   
   const existingAccount = await prisma.account.findFirst({ 
     where: { ownerName, bankId } 
@@ -33,6 +33,7 @@ const createAccount = async (data) => {
       email,
       password,
       bankId,
+      userId,
       currency: currency || "XOF",
     },
     include: {
@@ -51,8 +52,10 @@ const createAccount = async (data) => {
 /**
  * FUNCTION 2 — getAllAccounts
  */
-const getAllAccounts = async () => {
+const getAllAccounts = async (userId = null) => {
+  const where = userId ? { userId } : {};
   const accounts = await prisma.account.findMany({
+    where,
     include: {
       bank: {
         select: { name: true, code: true }
@@ -66,7 +69,7 @@ const getAllAccounts = async () => {
 /**
  * FUNCTION 3 — deleteAccount
  */
-const deleteAccount = async (accountId) => {
+const deleteAccount = async (accountId, userId = null, isAdmin = false) => {
   // Step 1 — Find account
   const account = await prisma.account.findUnique({
     where: { id: accountId }
@@ -75,6 +78,13 @@ const deleteAccount = async (accountId) => {
   if (!account) {
     const err = new Error("Compte bancaire non trouvé");
     err.statusCode = 404;
+    throw err;
+  }
+
+  // Check if user is admin only
+  if (!isAdmin) {
+    const err = new Error("Seul un administrateur peut supprimer un compte");
+    err.statusCode = 403;
     throw err;
   }
 
@@ -137,4 +147,94 @@ const checkBalance = async (accountId) => {
   };
 };
 
-module.exports = { createAccount, getAllAccounts, deleteAccount, checkBalance };
+const suspendAccount = async (accountId, isAdmin = false) => {
+  // Check if user is admin
+  if (!isAdmin) {
+    const err = new Error("Seul un administrateur peut désactiver un compte");
+    err.statusCode = 403;
+    throw err;
+  }
+
+  // Find account
+  const account = await prisma.account.findUnique({
+    where: { id: accountId }
+  });
+
+  if (!account) {
+    const err = new Error("Compte bancaire non trouvé");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (account.status === "suspended") {
+    const err = new Error("Ce compte est déjà désactivé");
+    err.statusCode = 409;
+    throw err;
+  }
+
+  if (account.status === "closed") {
+    const err = new Error("Ce compte est fermé et ne peut pas être désactivé");
+    err.statusCode = 409;
+    throw err;
+  }
+
+  // Update account status
+  const updatedAccount = await prisma.account.update({
+    where: { id: accountId },
+    data: { status: "suspended" },
+    include: {
+      bank: {
+        select: { name: true, code: true }
+      }
+    }
+  });
+
+  return updatedAccount;
+};
+
+const activateAccount = async (accountId, isAdmin = false) => {
+  // Check if user is admin
+  if (!isAdmin) {
+    const err = new Error("Seul un administrateur peut activer un compte");
+    err.statusCode = 403;
+    throw err;
+  }
+
+  // Find account
+  const account = await prisma.account.findUnique({
+    where: { id: accountId }
+  });
+
+  if (!account) {
+    const err = new Error("Compte bancaire non trouvé");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (account.status === "active") {
+    const err = new Error("Ce compte est déjà activé");
+    err.statusCode = 409;
+    throw err;
+  }
+
+  if (account.status === "closed") {
+    const err = new Error("Ce compte est fermé et ne peut pas être activé");
+    err.statusCode = 409;
+    throw err;
+  }
+
+  // Update account status
+  const updatedAccount = await prisma.account.update({
+    where: { id: accountId },
+    data: { status: "active" },
+    include: {
+      bank: {
+        select: { name: true, code: true }
+      }
+    }
+  });
+
+  return updatedAccount;
+};
+
+module.exports = { createAccount, getAllAccounts, deleteAccount, checkBalance, suspendAccount, activateAccount };

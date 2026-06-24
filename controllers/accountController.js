@@ -28,7 +28,8 @@ const createAccount = async (req, res, next) => {
  */
 const getAllAccounts = async (req, res, next) => {
   try {
-    const accounts = await accountService.getAllAccounts();
+    const { userId } = req.query;
+    const accounts = await accountService.getAllAccounts(userId || null);
     return res.status(200).json({
       success: true,
       count: accounts.length,
@@ -45,11 +46,40 @@ const getAllAccounts = async (req, res, next) => {
  */
 const deleteAccount = async (req, res, next) => {
   try {
-    const result = await accountService.deleteAccount(req.params.id);
+    const { userId, isAdmin } = req.body;
+    const result = await accountService.deleteAccount(req.params.id, userId, isAdmin || false);
     return res.status(200).json({
       success: true,
       message: result.message,
       data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const suspendAccount = async (req, res, next) => {
+  try {
+    const { isAdmin } = req.body;
+    const account = await accountService.suspendAccount(req.params.id, isAdmin || false);
+    return res.status(200).json({
+      success: true,
+      message: "Compte désactivé avec succès",
+      data: account,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const activateAccount = async (req, res, next) => {
+  try {
+    const { isAdmin } = req.body;
+    const account = await accountService.activateAccount(req.params.id, isAdmin || false);
+    return res.status(200).json({
+      success: true,
+      message: "Compte activé avec succès",
+      data: account,
     });
   } catch (error) {
     next(error);
@@ -68,4 +98,4 @@ const checkBalance = async (req, res, next) => {
   }
 };
 
-module.exports = { createAccount, getAllAccounts, deleteAccount, checkBalance };
+module.exports = { createAccount, getAllAccounts, deleteAccount, suspendAccount, activateAccount, checkBalance };

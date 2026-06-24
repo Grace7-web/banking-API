@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const { param } = require("express-validator");
-const { createAccount, getAllAccounts, deleteAccount, checkBalance } = require('../controllers/accountController');
+const { createAccount, getAllAccounts, deleteAccount, suspendAccount, activateAccount, checkBalance } = require('../controllers/accountController');
 const { deposit, withdrawal, getTransactionHistory } = require('../controllers/transactionController');
 const validate = require("../middlewares/validate");
 
@@ -82,6 +82,46 @@ router.get('/', getAllAccounts);
  *         description: Compte introuvable
  */
 router.delete("/:id", idParamRule, validate, deleteAccount);
+
+/**
+ * @swagger
+ * /api/accounts/{id}/suspend:
+ *   patch:
+ *     summary: Désactiver un compte par ID
+ *     tags: [Comptes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Compte désactivé
+ *       404:
+ *         description: Compte introuvable
+ */
+router.patch("/:id/suspend", idParamRule, validate, suspendAccount);
+
+/**
+ * @swagger
+ * /api/accounts/{id}/activate:
+ *   patch:
+ *     summary: Activer un compte par ID
+ *     tags: [Comptes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Compte activé
+ *       404:
+ *         description: Compte introuvable
+ */
+router.patch("/:id/activate", idParamRule, validate, activateAccount);
 
 /**
  * @swagger

@@ -455,53 +455,6 @@
     .status-suspended { background: rgba(251,191,36,0.1); color: #fbbf24; }
     .status-closed  { background: var(--red-dim); color: var(--red); }
 
-    /* Transaction type */
-    .tx-deposit   { color: var(--green); }
-    .tx-withdrawal { color: var(--red); }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: var(--bg-0); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    /* Dashboard welcome */
-    .welcome-banner {
-      background: linear-gradient(135deg, var(--bg-2), var(--bg-3));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px;
-      margin-bottom: 32px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .welcome-banner::after {
-      content: '🏦';
-      position: absolute;
-      right: 40px; top: 50%;
-      transform: translateY(-50%);
-      font-size: 80px;
-      opacity: 0.08;
-    }
-
-    .welcome-title {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .welcome-title span { color: var(--gold); }
-    .welcome-sub { font-size: 16px; color: var(--text-2); }
-
-    /* Onboarding */
-    .onboarding-card {
-      background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.02));
-      border: 1px solid rgba(201,168,76,0.2);
-      border-radius: var(--radius);
-      padding: 32px;
-      margin-bottom: 32px;
-    }
-
     /* Transaction history item */
     .tx-item {
       display: flex;
@@ -550,7 +503,7 @@
     </div>
   </div>
 
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" id="sidebar-nav" style="display:none">
     <div class="nav-section">
       <div class="nav-label">Menu</div>
       <div class="nav-item active" onclick="navigate('dashboard')">
@@ -577,6 +530,13 @@
       <div class="status-dot" id="statusDot"></div>
       <span id="statusText">Vérification...</span>
     </div>
+    <div id="user-info" style="display:none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+      <div style="font-size:12px;color:var(--text-3)">Connecté en tant que</div>
+      <div style="font-weight:600;color:var(--text-1);font-size:14px" id="user-name">—</div>
+      <button class="btn btn-outline btn-sm" onclick="logout()" style="margin-top:8px;width:100%">
+        Se déconnecter
+      </button>
+    </div>
   </div>
 </aside>
 
@@ -588,14 +548,61 @@
   <!-- Topbar -->
   <div class="topbar">
     <div>
-      <div class="page-title" id="pageTitle">Tableau de bord</div>
-      <div class="page-subtitle" id="pageSubtitle">Bienvenue sur votre espace bancaire</div>
+      <div class="page-title" id="pageTitle">Bienvenue</div>
+      <div class="page-subtitle" id="pageSubtitle">Connectez-vous pour accéder à votre espace</div>
     </div>
     <input type="hidden" id="apiBaseUrl" />
   </div>
 
+  <!-- LOGIN / REGISTER -->
+  <div class="section active" id="section-auth">
+    <div class="card" style="max-width:500px;margin:0 auto;margin-top:50px">
+      <div class="card-header">
+        <span class="card-title"><span style="font-size:22px">🔐</span> Connexion</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:20px">
+        <button class="btn btn-gold" id="btn-login-tab" onclick="showAuthTab('login')" style="flex:1">Se connecter</button>
+        <button class="btn btn-outline" id="btn-register-tab" onclick="showAuthTab('register')" style="flex:1">S'inscrire</button>
+      </div>
+      
+      <!-- LOGIN FORM -->
+      <div id="login-form">
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="login-email" placeholder="Ex: email@exemple.com" />
+        </div>
+        <div class="form-group">
+          <label>Mot de passe *</label>
+          <input type="password" id="login-password" placeholder="Mot de passe" />
+        </div>
+        <button class="btn btn-gold" onclick="login()" style="width:100%">
+          Se connecter
+        </button>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="register-form" style="display:none">
+        <div class="form-group">
+          <label>Nom complet *</label>
+          <input type="text" id="register-name" placeholder="Ex: John Doe" />
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="register-email" placeholder="Ex: email@exemple.com" />
+        </div>
+        <div class="form-group">
+          <label>Mot de passe *</label>
+          <input type="password" id="register-password" placeholder="Mot de passe" />
+        </div>
+        <button class="btn btn-gold" onclick="register()" style="width:100%">
+          S'inscrire
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- DASHBOARD -->
-  <div class="section active" id="section-dashboard">
+  <div class="section" id="section-dashboard">
     <div class="welcome-banner">
       <div class="welcome-title">Bienvenue sur <span>Bank</span></div>
       <div class="welcome-sub">Gérez vos comptes bancaires et vos transactions en toute simplicité</div>
@@ -686,30 +693,54 @@
         </button>
       </div>
 
-      <!-- Supprimer un compte -->
-      <div class="card" style="opacity:0.9">
-        <div class="card-header">
-          <span class="card-title"><span style="font-size:20px">🗑️</span> Supprimer un compte</span>
+      <!-- Admin: Gestion des comptes -->
+      <div id="adminControls" style="display:none">
+        <!-- Supprimer un compte -->
+        <div class="card" style="opacity:0.9;margin-bottom:20px">
+          <div class="card-header">
+            <span class="card-title"><span style="font-size:20px">🗑️</span> Supprimer un compte</span>
+          </div>
+          <div class="form-group">
+            <label>Compte à supprimer *</label>
+            <select id="deleteAccId">
+              <option value="">— Sélectionnez un compte —</option>
+            </select>
+          </div>
+          <p style="font-size:13px;color:var(--text-3);margin-bottom:20px;line-height:1.5">
+            ⚠️ Le solde du compte doit être à 0 pour pouvoir le supprimer
+          </p>
+          <button class="btn btn-danger" onclick="deleteAccount()" style="width:100%">
+            <span>🗑️</span> Confirmer la suppression
+          </button>
         </div>
-        <div class="form-group">
-          <label>Compte à supprimer *</label>
-          <select id="deleteAccId">
-            <option value="">— Sélectionnez un compte —</option>
-          </select>
+        
+        <!-- Désactiver/Activer un compte -->
+        <div class="card" style="opacity:0.9">
+          <div class="card-header">
+            <span class="card-title"><span style="font-size:20px">⚙️</span> Gérer le statut du compte</span>
+          </div>
+          <div class="form-group">
+            <label>Compte *</label>
+            <select id="statusAccId">
+              <option value="">— Sélectionnez un compte —</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-outline" onclick="suspendAccount()" style="flex:1">
+              <span>⏸️</span> Désactiver
+            </button>
+            <button class="btn btn-success" onclick="activateAccount()" style="flex:1">
+              <span>▶️</span> Activer
+            </button>
+          </div>
         </div>
-        <p style="font-size:13px;color:var(--text-3);margin-bottom:20px;line-height:1.5">
-          ⚠️ Le solde du compte doit être à 0 pour pouvoir le supprimer
-        </p>
-        <button class="btn btn-danger" onclick="deleteAccount()" style="width:100%">
-          <span>🗑️</span> Confirmer la suppression
-        </button>
       </div>
     </div>
 
     <!-- Liste des comptes -->
     <div class="card">
       <div class="card-header">
-        <span class="card-title"><span style="font-size:20px">💳</span> Tous les comptes</span>
+        <span class="card-title"><span style="font-size:20px">💳</span> Vos comptes</span>
         <button class="btn btn-outline btn-sm" onclick="loadAccounts()">🔄 Actualiser</button>
       </div>
       <div id="accountList">
@@ -861,9 +892,18 @@
 </main>
 
 <script>
+let currentUser = null;
+
 document.addEventListener('DOMContentLoaded', () => {
   const apiUrlInput = document.getElementById('apiBaseUrl');
   apiUrlInput.value = window.location.origin + '/api/v1';
+  checkAuth();
+  
+  // Ajouter l'écouteur pour filtrer les comptes destinataires lors du choix de la banque
+  const bankSelect = document.getElementById('transferToBankId');
+  if (bankSelect) {
+    bankSelect.addEventListener('change', filterTransferAccounts);
+  }
 });
 
 const getBase = () => document.getElementById('apiBaseUrl').value.replace(/\/$/, '');
@@ -929,6 +969,108 @@ async function checkHealth() {
   }
 }
 
+// --- Auth functions ---
+function checkAuth() {
+  const savedUser = localStorage.getItem('bankUser');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    showAuthState(true);
+    navigate('dashboard');
+  } else {
+    showAuthState(false);
+  }
+}
+
+function showAuthState(isLoggedIn) {
+  if (isLoggedIn) {
+    document.getElementById('section-auth').classList.remove('active');
+    document.getElementById('sidebar-nav').style.display = 'block';
+    document.getElementById('user-info').style.display = 'block';
+    document.getElementById('user-name').textContent = currentUser.name;
+    
+    // Show admin controls if user is admin
+    if (currentUser.role === 'admin') {
+      const adminControls = document.getElementById('adminControls');
+      if (adminControls) {
+        adminControls.style.display = 'block';
+      }
+    }
+    
+    checkHealth();
+  } else {
+    document.getElementById('section-auth').classList.add('active');
+    document.getElementById('sidebar-nav').style.display = 'none';
+    document.getElementById('user-info').style.display = 'none';
+    
+    // Hide admin controls
+    const adminControls = document.getElementById('adminControls');
+    if (adminControls) {
+      adminControls.style.display = 'none';
+    }
+  }
+}
+
+function showAuthTab(tab) {
+  if (tab === 'login') {
+    document.getElementById('login-form').style.display = 'block';
+    document.getElementById('register-form').style.display = 'none';
+    document.getElementById('btn-login-tab').className = 'btn btn-gold';
+    document.getElementById('btn-register-tab').className = 'btn btn-outline';
+  } else {
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('register-form').style.display = 'block';
+    document.getElementById('btn-login-tab').className = 'btn btn-outline';
+    document.getElementById('btn-register-tab').className = 'btn btn-gold';
+  }
+}
+
+async function login() {
+  try {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) return toast('Veuillez remplir tous les champs', 'error');
+    
+    const data = await api('POST', '/users/login', { email, password });
+    currentUser = data.data;
+    localStorage.setItem('bankUser', JSON.stringify(currentUser));
+    toast('Connexion réussie !', 'success');
+    showAuthState(true);
+    navigate('dashboard');
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function register() {
+  try {
+    const name = document.getElementById('register-name').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value;
+    if (!name || !email || !password) return toast('Veuillez remplir tous les champs', 'error');
+    
+    const data = await api('POST', '/users/register', { name, email, password });
+    currentUser = data.data;
+    localStorage.setItem('bankUser', JSON.stringify(currentUser));
+    toast('Inscription réussie !', 'success');
+    showAuthState(true);
+    navigate('dashboard');
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('bankUser');
+  showAuthState(false);
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('register-name').value = '';
+  document.getElementById('register-email').value = '';
+  document.getElementById('register-password').value = '';
+  toast('Vous avez été déconnecté', 'info');
+}
+
 async function loadDashboard() {
   checkHealth();
   let hasAccounts = false;
@@ -940,7 +1082,7 @@ async function loadDashboard() {
   } catch { document.getElementById('statBanks').textContent = '0'; }
 
   try {
-    const accs = await api('GET', '/accounts');
+    const accs = await api('GET', '/accounts?userId=' + currentUser.id);
     const accCount = accs.count ?? accs.data?.length ?? 0;
     document.getElementById('statAccounts').textContent = accCount;
     hasAccounts = accCount > 0;
@@ -953,7 +1095,7 @@ async function loadDashboard() {
         <tr>
           <td class="mono">${a.accountNumber}</td>
           <td style="font-weight:600">${a.ownerName}</td>
-          <td>${a.bankId?.name || '—'}</td>
+          <td>${a.bank?.name || a.bankId?.name || '—'}</td>
           <td class="mono" style="color:var(--gold);font-weight:600">${a.balance.toLocaleString()} ${a.currency}</td>
           <td><span class="status-pill status-${a.status}">${a.status}</span></td>
         </tr>
@@ -995,16 +1137,16 @@ let allAccounts = [];
 
 async function loadAccountOptions() {
   try {
-    const res = await api('GET', '/accounts');
+    const res = await api('GET', '/accounts?userId=' + currentUser.id);
     allAccounts = res.data || [];
     
     // Charger les comptes pour tous les champs sauf transferToAccId (qui est filtré)
-    const ids = ['depositAccId','withdrawAccId','historyAccId','deleteAccId','transferFromAccId'];
+    const ids = ['depositAccId','withdrawAccId','historyAccId','deleteAccId','transferFromAccId','statusAccId'];
     ids.forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
       sel.innerHTML = '<option value="">— Sélectionnez un compte —</option>' +
-        allAccounts.map(a => `<option value="${a.id}">${a.ownerName} · ${a.accountNumber}</option>`).join('');
+        allAccounts.map(a => `<option value="${a.id}">${a.ownerName} · ${a.accountNumber} (${a.status})</option>`).join('');
     });
     
     // Réinitialiser le champ transferToAccId
@@ -1028,14 +1170,14 @@ function filterTransferAccounts() {
 }
 
 async function createAccount() {
-  const ownerName = document.getElementById('accOwner').value.trim();
-  const email = document.getElementById('accEmail').value.trim();
+  const ownerName = document.getElementById('accOwner').value.trim() || currentUser.name;
+  const email = document.getElementById('accEmail').value.trim() || currentUser.email;
   const bankId = document.getElementById('accBankId').value;
   const currency = document.getElementById('accCurrency').value;
   const password = document.getElementById('accPassword').value.trim();
-  if (!ownerName || !email || !bankId || !password) return toast('Tous les champs sont obligatoires', 'error');
+  if (!ownerName || !bankId) return toast('Veuillez sélectionner une banque', 'error');
   try {
-    await api('POST', '/accounts', { ownerName, email, bankId, currency, password });
+    await api('POST', '/accounts', { ownerName, email, bankId, currency, password, userId: currentUser.id });
     toast('Compte créé avec succès !', 'success');
     document.getElementById('accOwner').value = '';
     document.getElementById('accEmail').value = '';
@@ -1051,7 +1193,7 @@ async function loadAccounts() {
   const el = document.getElementById('accountList');
   el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Chargement...</div></div>';
   try {
-    const res = await api('GET', '/accounts');
+    const res = await api('GET', '/accounts?userId=' + currentUser.id);
     if (!res.data?.length) {
       el.innerHTML = '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">Aucun compte pour le moment</div></div>';
       return;
@@ -1060,7 +1202,7 @@ async function loadAccounts() {
       <div class="account-card">
         <div class="account-number">${a.accountNumber}</div>
         <div class="account-owner">${a.ownerName}</div>
-        <div class="account-bank">🏛️ ${a.bankId?.name || '—'} · ${a.bankId?.code || ''}</div>
+        <div class="account-bank">🏛️ ${a.bank?.name || a.bankId?.name || '—'} · ${a.bank?.code || a.bankId?.code || ''}</div>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
             <span class="account-balance">${a.balance.toLocaleString()}</span>
@@ -1082,7 +1224,7 @@ async function deleteAccount() {
   if (!id) return toast('Sélectionnez un compte', 'error');
   if (!confirm('Êtes-vous sûr de vouloir supprimer ce compte ?')) return;
   try {
-    await api('DELETE', `/accounts/${id}`);
+    await api('DELETE', '/accounts/' + id, { userId: currentUser.id, isAdmin: currentUser.role === 'admin' });
     toast('Compte supprimé avec succès !', 'success');
     loadAccounts();
     loadAccountOptions();
@@ -1156,7 +1298,7 @@ async function loadHistory() {
   historyEl.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Chargement...</div></div>';
 
   try {
-    const accs = await api('GET', '/accounts');
+    const accs = await api('GET', '/accounts?userId=' + currentUser.id);
     const account = accs.data?.find(a => a.id === accountId);
 
     if (account) {
@@ -1168,7 +1310,7 @@ async function loadHistory() {
       balanceEmpty.style.display = 'none';
     }
 
-    const res = await api('GET', `/transactions/history/${accountId}`);
+    const res = await api('GET', '/transactions/history/' + accountId);
     if (!res.data?.length) {
       historyEl.innerHTML = '<div class="empty"><div class="empty-icon">📜</div><div class="empty-text">Aucune transaction pour ce compte</div></div>';
       return;
@@ -1178,11 +1320,11 @@ async function loadHistory() {
       <div class="tx-item">
         <div style="display:flex;align-items:center">
           <div class="tx-icon ${t.type === 'deposit' ? 'deposit' : 'withdrawal'}">
-            ${t.type === 'deposit' ? '⬇️' : t.type === 'withdraw' ? '⬆️' : '🔄'}
+            ${t.type === 'deposit' ? '⬇️' : t.type === 'withdraw' || t.type === 'withdrawal' ? '⬆️' : '🔄'}
           </div>
           <div class="tx-info">
             <div class="tx-type">
-              ${t.type === 'deposit' ? 'Dépôt' : t.type === 'withdraw' ? 'Retrait' : 'Virement'}
+              ${t.type === 'deposit' ? 'Dépôt' : t.type === 'withdraw' || t.type === 'withdrawal' ? 'Retrait' : 'Virement'}
             </div>
             <div class="tx-desc">${t.description || 'Aucune description'}</div>
             <div class="tx-date">${new Date(t.createdAt).toLocaleString('fr-FR')}</div>
@@ -1201,18 +1343,35 @@ async function loadHistory() {
   }
 }
 
-// Initialisation au chargement de la page
-document.addEventListener('DOMContentLoaded', function() {
-  // Ajouter l'écouteur pour filtrer les comptes destinataires lors du choix de la banque
-  const bankSelect = document.getElementById('transferToBankId');
-  if (bankSelect) {
-    bankSelect.addEventListener('change', filterTransferAccounts);
-  }
+async function suspendAccount() {
+  const accountId = document.getElementById('statusAccId').value;
+  if (!accountId) return toast('Sélectionnez un compte', 'error');
+  if (!confirm('Êtes-vous sûr de vouloir désactiver ce compte ?')) return;
   
-  // Charger les données initiales
-  loadBankOptions();
-  loadAccountOptions();
-});
+  try {
+    await api('PATCH', '/accounts/' + accountId + '/suspend', { isAdmin: currentUser.role === 'admin' });
+    toast('Compte désactivé avec succès !', 'success');
+    loadAccounts();
+    loadAccountOptions();
+  } catch(e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function activateAccount() {
+  const accountId = document.getElementById('statusAccId').value;
+  if (!accountId) return toast('Sélectionnez un compte', 'error');
+  if (!confirm('Êtes-vous sûr de vouloir activer ce compte ?')) return;
+  
+  try {
+    await api('PATCH', '/accounts/' + accountId + '/activate', { isAdmin: currentUser.role === 'admin' });
+    toast('Compte activé avec succès !', 'success');
+    loadAccounts();
+    loadAccountOptions();
+  } catch(e) {
+    toast(e.message, 'error');
+  }
+}
 </script>
 </body>
 </html>
