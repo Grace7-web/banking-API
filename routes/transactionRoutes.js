@@ -2,7 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { depositFromBody, withdrawFromBody, getTransactionHistoryFromRoute, transfer } = require('../controllers/transactionController');
+const { depositFromBody, withdrawFromBody, getTransactionHistoryFromRoute, transfer, getAllTransactions } = require('../controllers/transactionController');
 
 /**
  * @swagger
@@ -66,5 +66,14 @@ router.get('/history/:accountId', getTransactionHistoryFromRoute);
  *         description: Compte source ou destination introuvable
  */
 router.post('/transfer', transfer);
+
+/**
+ * @swagger
+ * /api/transactions/all:
+ *   get:
+ *     summary: Obtenir TOUTES les transactions (admin seulement)
+ *     tags: [Transactions]
+ */
+router.get('/all', getAllTransactions);
 
 module.exports = router;

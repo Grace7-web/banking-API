@@ -160,4 +160,21 @@ const transfer = async (req, res, next) => {
   }
 };
 
-module.exports = { deposit, depositFromBody, withdrawal, withdrawFromBody, getTransactionHistory, getTransactionHistoryFromRoute, transfer };
+/**
+ * GET /transactions/all
+ * Returns ALL transactions (admin only)
+ */
+const getAllTransactions = async (req, res, next) => {
+  try {
+    const transactions = await transactionService.getAllTransactions();
+    return res.status(200).json({
+      success: true,
+      count: transactions.length,
+      data: transactions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { deposit, depositFromBody, withdrawal, withdrawFromBody, getTransactionHistory, getTransactionHistoryFromRoute, transfer, getAllTransactions };

@@ -235,4 +235,24 @@ const transfer = async (fromAccountId, toAccountId, amount, description = "") =>
   return result;
 };
 
-module.exports = { deposit, withdrawal, getTransactionHistory, transfer };
+/**
+ * Returns ALL transactions (admin only)
+ * @returns {Promise<Transaction[]>}
+ */
+const getAllTransactions = async () => {
+  const transactions = await prisma.transaction.findMany({
+    include: {
+      account: {
+        include: {
+          bank: true
+        }
+      }
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+  });
+
+  return transactions;
+};
+
+module.exports = { deposit, withdrawal, getTransactionHistory, transfer, getAllTransactions };

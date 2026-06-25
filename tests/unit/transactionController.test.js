@@ -109,6 +109,97 @@ describe("TransactionController", () => {
     });
   });
 
+  describe("depositFromBody", () => {
+    it("doit effectuer un dépôt avec succès (200)", async () => {
+      const fakeResult = {
+        account: { currency: "XOF" },
+        transaction: { id: "tx1" }
+      };
+      vi.spyOn(transactionService, "deposit").mockResolvedValue(fakeResult);
+      req.body = { accountId: "acc123", amount: 50000, description: "Salaire" };
+
+      await transactionController.depositFromBody(req, res, next);
+
+      expect(transactionService.deposit).toHaveBeenCalledWith("acc123", 50000, "Salaire");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        success: true,
+        data: fakeResult
+      }));
+    });
+
+    it("doit appeler next() en cas d'erreur", async () => {
+      const testError = new Error("Erreur de test");
+      vi.spyOn(transactionService, "deposit").mockRejectedValue(testError);
+      req.body = {};
+
+      await transactionController.depositFromBody(req, res, next);
+
+      expect(next).toHaveBeenCalledWith(testError);
+    });
+  });
+
+  describe("withdrawFromBody", () => {
+    it("doit effectuer un retrait avec succès (200)", async () => {
+      const fakeResult = {
+        account: { currency: "XOF" },
+        transaction: { id: "tx1" }
+      };
+      vi.spyOn(transactionService, "withdrawal").mockResolvedValue(fakeResult);
+      req.body = { accountId: "acc123", amount: 10000, description: "Courses" };
+
+      await transactionController.withdrawFromBody(req, res, next);
+
+      expect(transactionService.withdrawal).toHaveBeenCalledWith("acc123", 10000, "Courses");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        success: true,
+        data: fakeResult
+      }));
+    });
+
+    it("doit appeler next() en cas d'erreur", async () => {
+      const testError = new Error("Erreur de test");
+      vi.spyOn(transactionService, "withdrawal").mockRejectedValue(testError);
+      req.body = {};
+
+      await transactionController.withdrawFromBody(req, res, next);
+
+      expect(next).toHaveBeenCalledWith(testError);
+    });
+  });
+
+  describe("getTransactionHistoryFromRoute", () => {
+    it("doit retourner l'historique des transactions (200)", async () => {
+      const fakeTransactions = [
+        { id: "tx1", type: "deposit" },
+        { id: "tx2", type: "withdrawal" }
+      ];
+      vi.spyOn(transactionService, "getTransactionHistory").mockResolvedValue(fakeTransactions);
+      req.params.accountId = "acc123";
+
+      await transactionController.getTransactionHistoryFromRoute(req, res, next);
+
+      expect(transactionService.getTransactionHistory).toHaveBeenCalledWith("acc123");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        count: 2,
+        data: fakeTransactions
+      });
+    });
+
+    it("doit appeler next() en cas d'erreur", async () => {
+      const testError = new Error("Erreur de test");
+      vi.spyOn(transactionService, "getTransactionHistory").mockRejectedValue(testError);
+      req.params.accountId = "acc123";
+
+      await transactionController.getTransactionHistoryFromRoute(req, res, next);
+
+      expect(next).toHaveBeenCalledWith(testError);
+    });
+  });
+
   describe("transfer", () => {
     it("doit effectuer un transfert avec succès (200)", async () => {
       const fakeResult = { transferOut: {}, transferIn: {} };
